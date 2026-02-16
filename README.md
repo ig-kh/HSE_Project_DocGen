@@ -46,3 +46,4 @@ sequenceDiagram
     Note over Bot,Redis: Message is now queued for async processing
     Bot-->>-User: Optional quick response<br>(e.g. "Message received ✓")
 ```
+<img width="871" height="888" alt="изображение" src="https://github.com/user-attachments/assets/253b484a-ebe5-4ce7-a92b-9ee600abc88a" />
