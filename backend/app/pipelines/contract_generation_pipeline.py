@@ -1,0 +1,80 @@
+from pathlib import Path
+
+from app.services.extractor.llm_extractor import LLMExtractor
+from app.services.extractor.validator import validate_extraction
+
+from app.services.docx.docx_parser import DocxParser
+from app.services.docx.chunker import DocxChunker
+from app.services.docx.entity_replacer import DocxEntityReplacer
+from app.services.docx.renderer import DocxRenderer
+
+from app.utils.exceptions import (
+    ExtractionError,
+    ValidationError,
+    DocxProcessingError,
+    PipelineError
+)
+
+from app.utils.logger import logger
+
+
+class ContractGenerationPipeline:
+
+    def __init__(self, model_path: str, template_path: str):
+        self.extractor = LLMExtractor(model_path)
+        self.chunker = DocxChunker()
+        self.entity_replacer = DocxEntityReplacer(self.extractor)
+        self.renderer = DocxRenderer()
+        self.template_path = template_path
+        
+    def run(self, prompt: str):
+        logger.info("Pipeline started")
+        logger.info(f"User prompt: {prompt}")
+        
+        # Extraction
+        logger.info("Running LLM extraction")
+        raw_output = self.extractor.extract(prompt)
+        logger.info(f"LLM raw output: {raw_output}")
+        extracted = validate_extraction(raw_output)
+        logger.info("Extraction validated")
+
+        # Load DOCX
+        logger.info("Loading template")
+        parser = DocxParser(self.template_path)
+        paragraphs_xml = parser.get_paragraphs()
+        paragraphs_text = [
+            parser.get_paragraph_text(p) for p in paragraphs_xml
+        ]
+        logger.info(f"Document paragraphs: {len(paragraphs_text)}")
+
+        # Chunking
+        chunks = self.chunker.chunk(paragraphs_text)
+        logger.info(f"Chunks created: {len(chunks)}")
+
+        # Entity replacement
+        logger.info("Running entity replacement")
+        self.entity_replacer.process_chunks(chunks, parser)
+
+        # Rendering
+        logger.info("Rendering placeholders")
+        self.renderer.render(parser, extracted)
+
+        # Save document
+        output_path = self._generate_output_path()
+        parser.save(output_path)
+        logger.info(f"Contract saved: {output_path}")
+
+        return {
+            "extracted": extracted,
+            "contract_path": str(output_path)
+        }
+
+    def _generate_output_path(self):
+        output_dir = Path("generated_contracts")
+        output_dir.mkdir(exist_ok=True)
+        filename = f"contract_{self._random_id()}.docx"
+        return output_dir / filename
+
+    def _random_id(self):
+        import uuid
+        return uuid.uuid4().hex[:8]
