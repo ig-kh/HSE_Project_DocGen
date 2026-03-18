@@ -19,7 +19,6 @@ from app.utils.logger import logger
 
 
 class ContractGenerationPipeline:
-
     def __init__(self, model_path: str, template_path: str):
         self.extractor = LLMExtractor(model_path)
         self.chunker = DocxChunker()
@@ -27,18 +26,18 @@ class ContractGenerationPipeline:
         self.renderer = DocxRenderer()
         self.template_path = template_path
         
-    def run(self, prompt: str):
+    def run(self, prompt: str, system_prompt_path: str):
         logger.info("Pipeline started")
         logger.info(f"User prompt: {prompt}")
         
-        # Extraction
+        # extraction
         logger.info("Running LLM extraction")
-        raw_output = self.extractor.extract(prompt)
+        raw_output = self.extractor.extract(prompt, system_prompt_path)
         logger.info(f"LLM raw output: {raw_output}")
         extracted = validate_extraction(raw_output)
         logger.info("Extraction validated")
 
-        # Load DOCX
+        # load docx
         logger.info("Loading template")
         parser = DocxParser(self.template_path)
         paragraphs_xml = parser.get_paragraphs()
@@ -47,19 +46,19 @@ class ContractGenerationPipeline:
         ]
         logger.info(f"Document paragraphs: {len(paragraphs_text)}")
 
-        # Chunking
+        # chunking
         chunks = self.chunker.chunk(paragraphs_text)
         logger.info(f"Chunks created: {len(chunks)}")
 
-        # Entity replacement
+        # entity replacement
         logger.info("Running entity replacement")
         self.entity_replacer.process_chunks(chunks, parser)
 
-        # Rendering
+        # rendering
         logger.info("Rendering placeholders")
         self.renderer.render(parser, extracted)
 
-        # Save document
+        # save document
         output_path = self._generate_output_path()
         parser.save(output_path)
         logger.info(f"Contract saved: {output_path}")

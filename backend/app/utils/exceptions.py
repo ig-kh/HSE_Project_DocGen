@@ -2,7 +2,6 @@ class DocGenError(Exception):
     """
     Base exception for all DocGen backend errors.
     """
-
     def __init__(self, message: str):
         super().__init__(message)
         self.message = message

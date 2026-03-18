@@ -1,30 +1,55 @@
 from llama_cpp import Llama
+from llama_cpp.llama_types import CreateChatCompletionResponse
+from datetime import date
+from typing import cast
+import sys
+
+MODEL_PATH = 'models/Qwen3-8B-Q4_K_M.gguf'
+today_f = date.today().strftime('%d/%m/%Y')
 
 
 class LLMExtractor:
-
     def __init__(self, model_path: str):
-
         self.llm = Llama(
-            model_path=model_path,
-            n_ctx=4096,
-            n_threads=8
+            model_path=MODEL_PATH,
+            n_ctx=3000,
+            n_threads=6,
+            n_batch=512,
+            verbose=False)
+
+    def extract(self, prompt: str, system_prompt_path: str):
+        with open(system_prompt_path, 'r') as fin:
+            system_prompt = fin.read()
+
+        resp = cast(
+            CreateChatCompletionResponse,
+            self.llm.create_chat_completion(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": f"today={today_f}. 'сегодня/завтра/вчера' считать относительно today."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                max_tokens=1024,
+                stream=False
+            )
         )
+        
+        resp_content = resp["choices"][0]["message"]["content"]
+        content = resp["choices"][0]["message"]["content"]
 
-    def extract(self, prompt: str):
+        if content is None:
+            content = ""
+        
+        if '</think>' in content:
+            content = content.split('</think>')[-1].strip()
 
-        system_prompt = """
-Extract structured contract fields from user input.
-Return JSON only.
-"""
-
-        full_prompt = f"""
-{system_prompt}
-
-User input:
-{prompt}
-"""
-
-        output = self.llm(full_prompt)
-
-        return output["choices"][0]["text"]
+        return content

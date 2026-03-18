@@ -49,6 +49,8 @@ class DocxParser:
                 zout.writestr(self.DOCUMENT_PATH, xml_bytes)
 
 
+"""
 parser = DocxParser("contract.docx")
 paragraphs = parser.extract_text()
 print(paragraphs)
+"""

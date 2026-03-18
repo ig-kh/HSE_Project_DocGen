@@ -5,12 +5,7 @@ from app.utils.exceptions import DocGenError
 
 
 async def docgen_exception_handler(request: Request, exc: Exception):
-    """
-    Handle DocGen errors.
-    """
-
     if isinstance(exc, DocGenError):
-
         return JSONResponse(
             status_code=400,
             content={
@@ -29,7 +24,6 @@ async def docgen_exception_handler(request: Request, exc: Exception):
 
 
 async def generic_exception_handler(request: Request, exc: Exception):
-
     return JSONResponse(
         status_code=500,
         content={
