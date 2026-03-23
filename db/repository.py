@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.db.models import Template, GeneratedContract
+from db.models import Template, GeneratedContract
 
 
 class TemplateRepository:

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON
 from datetime import datetime
 
-from app.db.session import Base
+from db.session import Base
 
 
 class Template(Base):

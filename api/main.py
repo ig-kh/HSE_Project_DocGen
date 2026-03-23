@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from app.api.router import router
-from app.utils.exceptions import DocGenError
-from app.utils.error_handlers import (
+from api.router import router
+from utils.exceptions import DocGenError
+from utils.error_handlers import (
     docgen_exception_handler,
     generic_exception_handler
 )

@@ -1,6 +1,6 @@
 from typing import List
-from app.services.docx.chunker import DocxChunk
-from app.services.docx.entity_cache import EntityCache
+from services.docx.chunker import DocxChunk
+from services.docx.entity_cache import EntityCache
 
 
 class DocxEntityReplacer:

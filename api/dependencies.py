@@ -1,6 +1,6 @@
 from functools import lru_cache
-from app.db.session import SessionLocal
-from app.pipelines.contract_generation_pipeline import ContractGenerationPipeline
+from db.session import SessionLocal
+from pipelines.contract_generation_pipeline import ContractGenerationPipeline
 
 
 @lru_cache()

@@ -1,7 +1,7 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from app.utils.exceptions import DocGenError
+from utils.exceptions import DocGenError
 
 
 async def docgen_exception_handler(request: Request, exc: Exception):

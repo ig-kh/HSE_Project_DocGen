@@ -1,21 +1,21 @@
 from pathlib import Path
 
-from app.services.extractor.llm_extractor import LLMExtractor
-from app.services.extractor.validator import validate_extraction
+from services.extractor.llm_extractor import LLMExtractor
+from services.extractor.validator import validate_extraction
 
-from app.services.docx.docx_parser import DocxParser
-from app.services.docx.chunker import DocxChunker
-from app.services.docx.entity_replacer import DocxEntityReplacer
-from app.services.docx.renderer import DocxRenderer
+from services.docx.docx_parser import DocxParser
+from services.docx.chunker import DocxChunker
+from services.docx.entity_replacer import DocxEntityReplacer
+from services.docx.renderer import DocxRenderer
 
-from app.utils.exceptions import (
+from utils.exceptions import (
     ExtractionError,
     ValidationError,
     DocxProcessingError,
     PipelineError
 )
 
-from app.utils.logger import logger
+from utils.logger import logger
 
 
 class ContractGenerationPipeline:

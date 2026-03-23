@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import generate
+from api.endpoints import generate
 
 router = APIRouter()
 

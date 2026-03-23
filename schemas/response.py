@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.schemas.extraction import ExtractedContract
+from schemas.extraction import ExtractedContract
 
 
 class GenerateContractResponse(BaseModel):

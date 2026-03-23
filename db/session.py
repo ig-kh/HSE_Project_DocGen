@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "postgresql://docgen:docgen@localhost/docgen"
+DATABASE_URL = "postgresql+psycopg2://postgres:postgres@postgres:5432/docsgen_llm"
 
 engine = create_engine(DATABASE_URL)
 
