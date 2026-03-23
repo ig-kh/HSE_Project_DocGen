@@ -1,4 +1,4 @@
-from llama_cpp import Llama
+from llama_cpp import Llama, LlamaGrammar
 from datetime import date
 import time
 import json
@@ -22,8 +22,8 @@ llm = Llama(
 with open('scripts/system_prompt.txt', 'r') as fin:
     sys_prompt = fin.read()
     
-print(len(sys_prompt))
-exit(0)
+# print(len(sys_prompt))
+# exit(0)
 start = time.time()
 resp = llm.create_chat_completion(
     messages=[
@@ -37,7 +37,7 @@ resp = llm.create_chat_completion(
         },
         {
             "role": "user",
-            "content": "Привет, составь мне договор с МТС от сегодняшнего дня по поводу продажи 1000 коров на сумму 1 миллион рублей, срок исполнения 2 недели с момента заключения договора"
+            "content": "Привет, составь мне договор с ООО 'Бабки деньги бизнес' от 25 апреля 2026 года по поводу скама 10 бабушек на общую сумму в 100 тысяч рублей, срок исполнения 2 дня"
         }
     ],
     max_tokens=1024
@@ -45,11 +45,13 @@ resp = llm.create_chat_completion(
 print(f"Prompt processing time: {np.mean(time.time() - start)}")
 
 resp_content = resp["choices"][0]["message"]["content"]
-resp_clipped = resp_content[resp_content.find('</think>')+len('</think>'):].strip()
-print(resp_clipped)
+if '</think>' in resp_content:
+    print('Removing thinking block...')
+    resp_content = resp_content[resp_content.find('</think>')+len('</think>'):].strip()
+print(resp_content)
 
 try:
-    parsed = validate_llm_json(resp_clipped)
+    parsed = validate_llm_json(resp_content)
     print("OK:", parsed.model_dump())
 except json.JSONDecodeError as e:
     print("Not JSON:", e)
