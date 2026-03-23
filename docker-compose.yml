@@ -6,13 +6,10 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/docsgen_llm
-      REDIS_URL: redis://redis:6379/0
       LOG_LEVEL: INFO
       AUTO_CREATE_TABLES: "true"
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
 
   postgres:

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
 
-from app.schemas.request import GenerateContractRequest
-from app.api.dependencies import get_pipeline
-from app.pipelines.contract_generation_pipeline import ContractGenerationPipeline
+from schemas.request import GenerateContractRequest
+from api.dependencies import get_pipeline
+from pipelines.contract_generation_pipeline import ContractGenerationPipeline
 
+SYSTEM_PROMPT_PATH = 'services/extractor/system_prompt.txt'
 
 router = APIRouter()
 
@@ -12,6 +13,6 @@ async def generate_contract(
     req: GenerateContractRequest,
     pipeline: ContractGenerationPipeline = Depends(get_pipeline)
 ):
-    result = pipeline.run(req.prompt)
+    result = pipeline.run(req.prompt, SYSTEM_PROMPT_PATH)
 
     return result

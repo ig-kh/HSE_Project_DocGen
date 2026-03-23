@@ -43,7 +43,6 @@ class LLMExtractor:
             )
         )
         
-        resp_content = resp["choices"][0]["message"]["content"]
         content = resp["choices"][0]["message"]["content"]
 
         if content is None:

@@ -6,7 +6,7 @@ from pipelines.contract_generation_pipeline import ContractGenerationPipeline
 @lru_cache()
 def get_pipeline():
     pipeline = ContractGenerationPipeline(
-        model_path="models/qwen3-8b-q4.gguf", # указать потом корректный путь 
+        model_path="models/Qwen3-8B-Q4_K_M.gguf", # указать потом корректный путь 
         template_path="templates/base_contract.docx" # аналогично
     )
     return pipeline
