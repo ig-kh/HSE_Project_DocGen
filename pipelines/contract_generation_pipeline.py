@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from services.extractor.llm_extractor import LLMExtractor
+from HSE_Project_DocGen.services.llm_engine import LLMEngine
 from services.extractor.validator import validate_extraction
 
 from services.docx.docx_parser import DocxParser
@@ -8,60 +8,41 @@ from services.docx.chunker import DocxChunker
 from services.docx.entity_replacer import DocxEntityReplacer
 from services.docx.renderer import DocxRenderer
 
-from utils.exceptions import (
-    ExtractionError,
-    ValidationError,
-    DocxProcessingError,
-    PipelineError
-)
+from services.replacer.transform_utils import transform_big_chunks
+from services.replacer.docx_parser import iter_all_runs, extract_run_texts
+from docx import Document
 
 from utils.logger import logger
 
 
 class ContractGenerationPipeline:
     def __init__(self, model_path: str, template_path: str):
-        self.extractor = LLMExtractor(model_path)
-        self.chunker = DocxChunker()
-        self.entity_replacer = DocxEntityReplacer(self.extractor)
-        self.renderer = DocxRenderer()
-        self.template_path = template_path
+        self.office_clerk = LLMEngine(model_path)
         
-    def run(self, prompt: str, system_prompt_path: str):
+    def run(self, prompt: str, extractor_system_prompt_path: str, replacer_system_prompt_path):
         logger.info("Pipeline started")
         logger.info(f"User prompt: {prompt}")
         
         # extraction
         logger.info("Running LLM extraction")
-        raw_output = self.extractor.extract(prompt, system_prompt_path)
+        raw_output = self.office_clerk.extract(prompt, extractor_system_prompt_path)
         logger.info(f"LLM raw output: {raw_output}")
         extracted = validate_extraction(raw_output)
         logger.info(f"Extraction validated, extracted structure: {extracted}")
 
-        # load docx
-        logger.info("Loading template")
-        parser = DocxParser(self.template_path)
-        paragraphs_xml = parser.get_paragraphs()
-        paragraphs_text = [
-            parser.get_paragraph_text(p) for p in paragraphs_xml
-        ]
-        logger.info(f"Document paragraphs: {len(paragraphs_text)}")
+        self.office_clerk.construct_replacement_prompt(replacer_system_prompt_path, format_extracted(extracted))
+        
+        doc = Document(src_path)
+        original_texts = extract_run_texts(doc)
 
-        # chunking
-        chunks = self.chunker.chunk(paragraphs_text)
-        logger.info(f"Chunks created: {len(chunks)}")
+        new_texts = transform_big_chunks(original_texts, lambda x: self.office_clerk.replace_in_chunk(x))
 
-        # entity replacement
-        logger.info("Running entity replacement")
-        self.entity_replacer.process_chunks(chunks, parser)
+        text_iter = iter(new_texts)
+        for run in iter_all_runs(doc):
+            run.text = next(text_iter)
 
-        # rendering
-        logger.info("Rendering placeholders")
-        self.renderer.render(parser, extracted)
-
-        # save document
-        output_path = self._generate_output_path()
-        parser.save(output_path)
-        logger.info(f"Contract saved: {output_path}")
+        doc.save(dst_path)
+        
 
         return {
             "extracted": extracted,
