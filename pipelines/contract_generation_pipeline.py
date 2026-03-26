@@ -1,12 +1,7 @@
 from pathlib import Path
 
-from HSE_Project_DocGen.services.llm_engine import LLMEngine
+from services.llm_engine import LLMEngine
 from services.extractor.validator import validate_extraction
-
-from services.docx.docx_parser import DocxParser
-from services.docx.chunker import DocxChunker
-from services.docx.entity_replacer import DocxEntityReplacer
-from services.docx.renderer import DocxRenderer
 
 from services.replacer.transform_utils import transform_big_chunks
 from services.replacer.docx_parser import iter_all_runs, extract_run_texts
@@ -27,12 +22,12 @@ class ContractGenerationPipeline:
         logger.info("Running LLM extraction")
         raw_output = self.office_clerk.extract(prompt, extractor_system_prompt_path)
         logger.info(f"LLM raw output: {raw_output}")
-        extracted = validate_extraction(raw_output)
+        extracted = validate_extraction(raw_output) #dict with correct fields
         logger.info(f"Extraction validated, extracted structure: {extracted}")
 
-        self.office_clerk.construct_replacement_prompt(replacer_system_prompt_path, format_extracted(extracted))
+        self.office_clerk.construct_replacement_prompt(replacer_system_prompt_path, extracted)
         
-        doc = Document(src_path)
+        doc = Document("/home/alex/study/contracts_drafting/HSE_Project_DocGen/docs/doc1.docx")
         original_texts = extract_run_texts(doc)
 
         new_texts = transform_big_chunks(original_texts, lambda x: self.office_clerk.replace_in_chunk(x))
@@ -41,9 +36,9 @@ class ContractGenerationPipeline:
         for run in iter_all_runs(doc):
             run.text = next(text_iter)
 
-        doc.save(dst_path)
+        output_path = "/home/alex/study/contracts_drafting/HSE_Project_DocGen/docs/doc1_out.docx"
+        doc.save(output_path)
         
-
         return {
             "extracted": extracted,
             "contract_path": str(output_path)

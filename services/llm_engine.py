@@ -4,7 +4,7 @@ from datetime import date
 from typing import cast
 import sys
 
-MODEL_PATH = 'models/Qwen3-8B-Q4_K_M.gguf'
+MODEL_PATH = 'models/Qwen3-4B-Q4_K_M.gguf'
 today_f = date.today().strftime('%d/%m/%Y')
 
 def contains_required_char(substring: str) -> bool:
@@ -41,6 +41,7 @@ class LLMEngine:
     def __init__(self, model_path: str):
         self.llm = Llama(
             model_path=MODEL_PATH,
+            n_ctx=3000,
             n_threads=8,
             n_gpu_layers=-1, 
             n_batch=512,

@@ -1,5 +1,6 @@
 import json
 from schemas.extraction import ExtractedContract
+import moneytalks as mt
 
 import re
 import json
@@ -80,9 +81,34 @@ class ParsedContract(BaseModel):
 
         return self
     
+def format_extracted(extracted: ParsedContract) -> dict:
+    cost_amount = float(extracted.cost.amount.replace(" ", "").replace(",", "."))
+    cost_currency = extracted.cost.currency if extracted.cost.currency is not "UNKNOWN" else "RUB"
+    cost_vat = extracted.cost.vat
+    
+    vat_cost = ""
+    if cost_vat == "included" or cost_vat == "unknown":
+        cost_vat = 22
+        vat_sum = cost_amount * (cost_vat / 100)
+        vat_cost = f", в том числе НДС {cost_vat}% {vat_sum} ({mt.get_string_by_number(vat_sum)})"
+        
+    full_cost = f"{cost_amount} ({mt.get_string_by_number(cost_amount)}){vat_cost}"
+    
+    formatted = {
+        "data": extracted.date,
+        "city": extracted.city if extracted.city is not None else "Nizhny Novgorod",
+        "counterparty": extracted.counterparty,
+        "work": extracted.work,
+        "work_time_days": extracted.work_time_days,
+        "work_time_basis_event": extracted.work_time_basis_event if extracted.work_time_basis_event is not None else "contract_date",
+        "cost": full_cost
+    }
+    
+    return formatted
+    
 def validate_extraction(text: str) -> ParsedContract:
     data = json.loads(text)
-    return ParsedContract.model_validate(data)
+    return format_extracted(ParsedContract.model_validate(data))
 
 # def validate_extraction(raw_output: str) -> ExtractedContract:
 #     data = json.loads(raw_output)
