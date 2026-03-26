@@ -35,7 +35,7 @@ class ContractGenerationPipeline:
         raw_output = self.extractor.extract(prompt, system_prompt_path)
         logger.info(f"LLM raw output: {raw_output}")
         extracted = validate_extraction(raw_output)
-        logger.info("Extraction validated")
+        logger.info(f"Extraction validated, extracted structure: {extracted}")
 
         # load docx
         logger.info("Loading template")
