@@ -112,7 +112,7 @@ class LLMEngine:
                     },
                     {
                         "role": "user",
-                        "content": chunk_text+"\n\n/no think"
+                        "content": chunk_text+"\n\n</no think>"
                     }
                 ],
                 # max_tokens=2048,

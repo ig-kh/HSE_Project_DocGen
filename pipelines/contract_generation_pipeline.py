@@ -26,7 +26,10 @@ class ContractGenerationPipeline:
         logger.info(f"Extraction validated, extracted structure: {extracted}")
 
         self.office_clerk.construct_replacement_prompt(replacer_system_prompt_path, extracted)
-        
+        logger.info("Generated prompt for replacer:")
+        logger.info(self.office_clerk.replacement_prompt)
+
+
         doc = Document("/app/pipelines/raw.docx")
         original_texts = extract_run_texts(doc)
 
