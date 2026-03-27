@@ -92,8 +92,8 @@ class LLMEngine:
         with open(system_prompt_path, 'r') as fin:
             system_prompt = fin.read()
 
-        for k,v in vals:
-            system_prompt = system_prompt.replace("{{"+k+"}}", v)
+        for k,v in vals.items():
+            system_prompt = system_prompt.replace("{{"+k+"}}", str(v))
 
         self.replacement_prompt = system_prompt
 
@@ -115,9 +115,9 @@ class LLMEngine:
                         "content": chunk_text+"\n\n/no think"
                     }
                 ],
-                max_tokens=1024,
+                # max_tokens=2048,
                 temperature=0.1,
-                streaming=False,
+                stream=False,
             )
         )
 

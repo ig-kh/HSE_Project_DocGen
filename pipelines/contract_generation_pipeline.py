@@ -27,7 +27,7 @@ class ContractGenerationPipeline:
 
         self.office_clerk.construct_replacement_prompt(replacer_system_prompt_path, extracted)
         
-        doc = Document("/home/alex/study/contracts_drafting/HSE_Project_DocGen/docs/doc1.docx")
+        doc = Document("/app/pipelines/raw.docx")
         original_texts = extract_run_texts(doc)
 
         new_texts = transform_big_chunks(original_texts, lambda x: self.office_clerk.replace_in_chunk(x))
@@ -36,7 +36,7 @@ class ContractGenerationPipeline:
         for run in iter_all_runs(doc):
             run.text = next(text_iter)
 
-        output_path = "/home/alex/study/contracts_drafting/HSE_Project_DocGen/docs/doc1_out.docx"
+        output_path = "/app/pipelines/processed.docx"
         doc.save(output_path)
         
         return {
