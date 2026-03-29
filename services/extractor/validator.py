@@ -9,6 +9,32 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, model_v
 
 
 Currency = Literal["RUB", "USD", "EUR", "GBP", "UNKNOWN"]
+currency_replace_dict = {
+    "USD": {
+        'рубль': 'доллар',
+        'рублей': 'долларов',
+        'рубля': 'доллара',
+        'копейка': 'цент',
+        'копеек': 'центов',
+        'копейки': 'цента'
+    },
+    "EUR": {
+        'рубль': 'евро',
+        'рублей': 'евро',
+        'рубля': 'евро',
+        'копейка': 'цент',
+        'копеек': 'центов',
+        'копейки': 'цента'
+    },
+    "GBP": {
+        'рубль': 'фунт стерлингов',
+        'рублей': 'фунтов стерлингов',
+        'рубля': 'фунта стерлингов',
+        'копейка': 'цент',
+        'копеек': 'центов',
+        'копейки': 'цента'
+    },
+}
 Vat = Literal["included", "excluded", "unknown"]
 MissingField = Literal["date", "counterparty", "work", "work_time_days", "cost"]
 
@@ -80,19 +106,36 @@ class ParsedContract(BaseModel):
         self.missing_fields = deduped
 
         return self
+
+def format_money(value: float) -> str:
+    s = f"{value:,.2f}"
+    s = s.replace(",", "X").replace(".", ",").replace("X", " ")
+    
+    return s
+
+def remove_invalid_thousand_phrase(text: str) -> str:
+    pattern = r'\b(миллион|миллиона|миллионов)\s+тысяч\b'
+    return re.sub(pattern, r'\1', text, flags=re.IGNORECASE)
+
+def fix_currency(currency: str, text: str):
+    if currency != "RUB":
+        for pattern in ['рубль', 'рублей', 'рубля', 'копейка', 'копеек', 'копейки']:
+            text = text.replace(pattern, currency_replace_dict[currency][pattern])
+    return text
     
 def format_extracted(extracted: ParsedContract) -> dict:
     cost_amount = float(extracted.cost.amount.replace(" ", "").replace(",", "."))
-    cost_currency = extracted.cost.currency if extracted.cost.currency is not "UNKNOWN" else "RUB"
+    cost_currency = extracted.cost.currency if extracted.cost.currency != "UNKNOWN" else "RUB"
     cost_vat = extracted.cost.vat
-    
-    vat_cost = ""
+    print(cost_vat)
+    vat_cost_str = ""
     if cost_vat == "included" or cost_vat == "unknown":
-        cost_vat = 22
-        vat_sum = cost_amount * (cost_vat / 100)
-        vat_cost = f", в том числе НДС {cost_vat}% {vat_sum} ({mt.get_string_by_number(vat_sum)})"
+        vat_perc = 22
+        vat_amount = cost_amount * (vat_perc / 100)
+        vat_cost_str = f", в том числе НДС {vat_perc}% {format_money(vat_amount)} ({mt.get_string_by_number(vat_amount)})"
         
-    full_cost = f"{cost_amount} ({mt.get_string_by_number(cost_amount)}){vat_cost}"
+    full_cost_str = remove_invalid_thousand_phrase(f"{format_money(cost_amount)} ({mt.get_string_by_number(cost_amount)}){vat_cost_str}")
+    full_cost_str = fix_currency(cost_currency, full_cost_str)
     
     formatted = {
         "data": extracted.date,
@@ -101,7 +144,7 @@ def format_extracted(extracted: ParsedContract) -> dict:
         "work": extracted.work,
         "work_time_days": extracted.work_time_days,
         "work_time_basis_event": extracted.work_time_basis_event if extracted.work_time_basis_event is not None else "contract_date",
-        "cost": full_cost
+        "cost": full_cost_str
     }
     
     return formatted
@@ -109,7 +152,3 @@ def format_extracted(extracted: ParsedContract) -> dict:
 def validate_extraction(text: str) -> ParsedContract:
     data = json.loads(text)
     return format_extracted(ParsedContract.model_validate(data))
-
-# def validate_extraction(raw_output: str) -> ExtractedContract:
-#     data = json.loads(raw_output)
-#     return ExtractedContract(**data)
