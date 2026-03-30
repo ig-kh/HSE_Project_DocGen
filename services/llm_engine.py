@@ -4,7 +4,7 @@ from datetime import date
 from typing import cast
 import sys
 
-MODEL_PATH = 'models/Qwen3-4B-Q4_K_M.gguf'
+MODEL_PATH = 'models/Qwen3-8B-Q4_K_M.gguf'
 today_f = date.today().strftime('%d/%m/%Y')
 
 def contains_required_char(substring: str) -> bool:
@@ -69,7 +69,7 @@ class LLMEngine:
                     },
                     {
                         "role": "user",
-                        "content": prompt
+                        "content": prompt+"\n\n</no think>"
                     }
                 ],
                 max_tokens=1024,
@@ -77,15 +77,14 @@ class LLMEngine:
             )
         )
         
-        content = resp["choices"][0]["message"]["content"]
+        resp_content = resp["choices"][0]["message"]["content"]
 
-        if content is None:
-            content = ""
+        if resp_content is None:
+            return ""
         
-        if '</think>' in content:
-            content = content.split('</think>')[-1].strip()
+        resp_clipped = resp_content[resp_content.find('</think>')+len('</think>'):].strip()
 
-        return content
+        return resp_clipped
 
     def construct_replacement_prompt(self, system_prompt_path: str, vals: dict) -> None:
         

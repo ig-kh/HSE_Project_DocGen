@@ -9,6 +9,11 @@ from docx import Document
 
 from utils.logger import logger
 
+def process(x, model):
+    logger.info(">"+ x)
+    y = model.replace_in_chunk(x)
+    logger.info("<"+ y)
+    return y
 
 class ContractGenerationPipeline:
     def __init__(self, model_path: str, template_path: str):
@@ -33,7 +38,7 @@ class ContractGenerationPipeline:
         doc = Document("/app/pipelines/raw.docx")
         original_texts = extract_run_texts(doc)
 
-        new_texts = transform_big_chunks(original_texts, lambda x: self.office_clerk.replace_in_chunk(x))
+        new_texts = transform_big_chunks(original_texts, lambda x: process(x, self.office_clerk))
 
         text_iter = iter(new_texts)
         for run in iter_all_runs(doc):
