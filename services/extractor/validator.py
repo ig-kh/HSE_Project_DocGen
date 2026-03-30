@@ -7,7 +7,6 @@ import json
 from typing import Literal, Optional, List
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
-
 Currency = Literal["RUB", "USD", "EUR", "GBP", "UNKNOWN"]
 currency_replace_dict = {
     "USD": {
@@ -36,14 +35,16 @@ currency_replace_dict = {
     },
 }
 Vat = Literal["included", "excluded", "unknown"]
-MissingField = Literal["date", "counterparty", "work", "work_time_days", "cost"]
+MissingField = Literal["date", "counterparty", "work", "work_time_days", "cost", "city"]
 
 DATE_RE = re.compile(r"^\d{2}\.\d{2}\.\d{4}$")
 AMOUNT_RE = re.compile(r"^\d+(\.\d+)?$")
 
 
 class Cost(BaseModel):
-    amount: str = Field(default="", description="Digits with optional '.' decimal separator, no spaces")
+    amount: str = Field(
+        default="", description="Digits with optional '.' decimal separator, no spaces"
+    )
     currency: Currency = "UNKNOWN"
     vat: Vat = "unknown"
 
@@ -56,7 +57,9 @@ class Cost(BaseModel):
         if v == "":
             return ""
         if not AMOUNT_RE.fullmatch(v):
-            raise ValueError("cost.amount must be digits with optional decimal dot (e.g. '1000000' or '1999.99')")
+            raise ValueError(
+                "cost.amount must be digits with optional decimal dot (e.g. '1000000' or '1999.99')"
+            )
         return v
 
 
@@ -64,6 +67,7 @@ class ParsedContract(BaseModel):
     date: Optional[str] = Field(default=None, description="dd.mm.yy")
     city: Optional[str] = None
     counterparty: Optional[str] = None
+    ambassador: Optional[str] = None
     work: Optional[str] = None
 
     work_time_days: Optional[int] = Field(default=None, ge=1, le=36500)
@@ -141,14 +145,16 @@ def format_extracted(extracted: ParsedContract) -> dict:
         "data": extracted.date,
         "city": extracted.city if extracted.city is not None else "Nizhny Novgorod",
         "counterparty": extracted.counterparty,
+        "ambassador": extracted.ambassador,
         "work": extracted.work,
         "work_time_days": extracted.work_time_days,
         "work_time_basis_event": extracted.work_time_basis_event if extracted.work_time_basis_event is not None else "contract_date",
         "cost": full_cost_str
     }
-    
+
     return formatted
-    
+
+
 def validate_extraction(text: str) -> ParsedContract:
     data = json.loads(text)
     return format_extracted(ParsedContract.model_validate(data))

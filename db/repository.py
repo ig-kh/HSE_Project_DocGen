@@ -19,18 +19,12 @@ class ContractRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def save_generated_contract(
-        self,
-        prompt,
-        extracted_json,
-        template_id,
-        file_path
-    ):
+    def save_generated_contract(self, prompt, extracted_json, template_id, file_path):
         contract = GeneratedContract(
             prompt=prompt,
             extracted_json=extracted_json,
             template_id=template_id,
-            file_path=file_path
+            file_path=file_path,
         )
         self.db.add(contract)
         self.db.commit()
