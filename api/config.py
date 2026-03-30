@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     DOC_TEMPLATE_PATH: Path = BASE_DIR / "templates"
     BASE_CONTRACT_TEMPLATE_PATH: Path = DOC_TEMPLATE_PATH / "base_contract.docx"
-    MODEL_PATH: Path = BASE_DIR / "models" / "Qwen3-4B-Q4_K_M.gguf"
+    MODEL_PATH: Path = BASE_DIR / "models" / "Qwen3-8B-Q4_K_M.gguf"
 
     DOCS_DIR: Path = BASE_DIR / "docs"
     RAW_DOC_PATH: Path = DOCS_DIR / "raw.docx"
