@@ -7,8 +7,11 @@ from services.replacer.transform_utils import transform_big_chunks
 from services.replacer.docx_parser import iter_all_runs, extract_run_texts
 from docx import Document
 
+from docx.enum.text import WD_COLOR
+
 from utils.logger import logger
 
+HIGHLIGHT_DIFFS = True
 
 def process(x, model):
     logger.info(">" + x.replace("➡️", ""))
@@ -51,8 +54,12 @@ class ContractGenerationPipeline:
         )
 
         text_iter = iter(new_texts)
-        for run in iter_all_runs(doc):
-            run.text = next(text_iter)
+        for run, old_run_text in zip(iter_all_runs(doc), original_texts):
+            new_run_text = next(text_iter)
+            run.text = new_run_text
+            if HIGHLIGHT_DIFFS and (old_run_text!=new_run_text):
+                run.font.highlight_color = WD_COLOR.YELLOW
+
 
         output_path = "/app/pipelines/processed.docx"
         doc.save(output_path)
