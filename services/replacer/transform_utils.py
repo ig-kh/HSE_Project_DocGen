@@ -17,7 +17,7 @@ def transform_big_chunks(texts, function):
         if delta_runs > 0:
             processed_chunk = processed_chunk[: len(chunk)]
         elif delta_runs < 0:
-            processed_chunk += chunk[delta_runs:]
+            processed_chunk += [""]*(-delta_runs)
 
         new_texts += processed_chunk
     return new_texts
