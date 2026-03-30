@@ -1,4 +1,4 @@
-def runs_chunker_with_overlap(run_texts, num_runs=50, runs_overlap=0):
+def runs_chunker_with_overlap(run_texts, num_runs=100, runs_overlap=0):
     chunks = []
     for i in range(0, len(run_texts), num_runs - runs_overlap):
         lpos = max(0, i - runs_overlap)

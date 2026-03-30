@@ -182,7 +182,7 @@ def format_extracted(extracted: ParsedContract) -> dict:
     full_cost_str = remove_invalid_thousand_phrase(f"{format_money(cost_amount)} ({mt.get_string_by_number(cost_amount)}){vat_cost_str}")
     full_cost_str = fix_currency(cost_currency, full_cost_str)
     
-    work_time_days = number_to_days(float(extracted.work_time_days))
+    work_time_days = number_to_days(int(extracted.work_time_days))
     
     formatted = {
         "data": extracted.date,

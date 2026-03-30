@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends
+from pathlib import Path
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
+
+from api.config import settings
 from schemas.request import GenerateContractRequest
 from api.dependencies import get_pipeline
 from pipelines.contract_generation_pipeline import ContractGenerationPipeline
-
-EXTRACTOR_SYSTEM_PROMPT_PATH = "services/extractor/system_prompt.txt"
-REPLACER_SYSTEM_PROMPT_PATH = "services/replacer/sys_prompt_template.txt"
 
 router = APIRouter()
 
@@ -16,7 +17,19 @@ async def generate_contract(
     pipeline: ContractGenerationPipeline = Depends(get_pipeline),
 ):
     result = pipeline.run(
-        req.prompt, EXTRACTOR_SYSTEM_PROMPT_PATH, REPLACER_SYSTEM_PROMPT_PATH
+        req.prompt,
+        settings.EXTRACTOR_SYSTEM_PROMPT_PATH,
+        settings.REPLACER_SYSTEM_PROMPT_PATH,
     )
 
-    return result
+    output_path = Path(result["contract_path"])
+    if not output_path.exists():
+        raise HTTPException(status_code=500, detail="Processed document was not created")
+
+    return FileResponse(
+        path=output_path,
+        media_type=(
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ),
+        filename=output_path.name,
+    )

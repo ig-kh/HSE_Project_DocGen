@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function App() {
   const [command, setCommand] = useState<string>('');
@@ -6,17 +6,42 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [downloadName, setDownloadName] = useState<string>('processed.docx');
+
+  useEffect(() => {
+    return () => {
+      if (fileUrl) {
+        URL.revokeObjectURL(fileUrl);
+      }
+    };
+  }, [fileUrl]);
+
+  const getFilenameFromDisposition = (contentDisposition: string | null) => {
+    if (!contentDisposition) return 'processed.docx';
+
+    const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      return decodeURIComponent(utf8Match[1]);
+    }
+
+    const plainMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+    return plainMatch?.[1] ?? 'processed.docx';
+  };
 
   const handleGenerate = async () => {
     if (!command.trim()) return;
-    
+
+    if (fileUrl) {
+      URL.revokeObjectURL(fileUrl);
+    }
+
     setIsGenerating(true);
     setError(null);
     setResult(null);
     setFileUrl(null);
+    setDownloadName('processed.docx');
 
     try {
-      // Отправка промпта на твой эндпоинт
       const res = await fetch('/contracts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -28,10 +53,18 @@ function App() {
         throw new Error(text || `HTTP ${res.status}`);
       }
 
-      // Получаем файл как blob
+      const contentType = res.headers.get('content-type') ?? '';
+      if (!contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Server returned an unexpected response instead of a document');
+      }
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
+      const filename = getFilenameFromDisposition(res.headers.get('content-disposition'));
+
       setFileUrl(url);
+      setDownloadName(filename);
 
       setCommand('');
       setResult({ message: 'Документ готов к скачиванию' });
@@ -53,9 +86,8 @@ function App() {
     if (!fileUrl) return;
     const link = document.createElement('a');
     link.href = fileUrl;
-    link.download = 'document.docx'; // можно изменить расширение по типу файла
+    link.download = downloadName;
     link.click();
-    URL.revokeObjectURL(fileUrl);
   };
 
   return (

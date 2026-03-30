@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 
+from api.config import settings
 from api.router import router
 from utils.exceptions import DocGenError
 from utils.error_handlers import docgen_exception_handler, generic_exception_handler
 
 
 def create_app() -> FastAPI:
-
-    app = FastAPI(title="DocGen API", version="0.1")
+    app = FastAPI(title=settings.API_TITLE, version=settings.API_VERSION)
 
     app.include_router(router)
 

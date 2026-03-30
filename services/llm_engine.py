@@ -1,11 +1,12 @@
 from datetime import date
+from pathlib import Path
 import re
 from typing import List, Optional, cast
 
 from llama_cpp import Llama
 from llama_cpp.llama_types import CreateChatCompletionResponse
 
-MODEL_PATH = "models/Qwen3-4B-Q4_K_M.gguf"
+from api.config import settings
 
 # ----------------------------------------------------------------------
 # Helper functions
@@ -113,7 +114,7 @@ def contains_required_char(substring: str) -> bool:
 class LLMEngine:
     """Wrapper around llama_cpp.Llama with thinking‑section removal."""
 
-    def __init__(self, model_path: str) -> None:
+    def __init__(self, model_path: str | Path) -> None:
         """
         Initialize the LLM engine.
 
@@ -121,11 +122,11 @@ class LLMEngine:
             model_path: Path to the GGUF model file.
         """
         self.llm = Llama(
-            model_path=MODEL_PATH,  # fixed: use the passed parameter
-            n_ctx=4096,
-            n_threads=8,
-            n_gpu_layers=-1,
-            n_batch=512,
+            model_path=str(model_path),
+            n_ctx=settings.LLM_N_CTX,
+            n_threads=settings.LLM_N_THREADS,
+            n_gpu_layers=settings.LLM_N_GPU_LAYERS,
+            n_batch=settings.LLM_N_BATCH,
             verbose=False,
         )
         self.replacement_prompt = ""  # will be set by construct_replacement_prompt
@@ -133,7 +134,7 @@ class LLMEngine:
     def extract(
         self,
         prompt: str,
-        system_prompt_path: str,
+        system_prompt_path: str | Path,
     ) -> str:
         """
         Process a single prompt using the given system prompt file.
@@ -172,7 +173,7 @@ class LLMEngine:
                         "content": f"{prompt}\n\n/no_think",
                     },
                 ],
-                max_tokens=1024,
+                max_tokens=settings.LLM_MAX_TOKENS,
                 stream=False,
             ),
         )
@@ -183,7 +184,9 @@ class LLMEngine:
 
         return strip_thinking_sections(content)
 
-    def construct_replacement_prompt(self, system_prompt_path: str, vals: dict) -> None:
+    def construct_replacement_prompt(
+        self, system_prompt_path: str | Path, vals: dict
+    ) -> None:
         """
         Load a system prompt template and replace placeholders with values.
 
@@ -224,7 +227,7 @@ class LLMEngine:
                     {"role": "system", "content": self.replacement_prompt},
                     {"role": "user", "content": f"{chunk_text}\n\n/no_think"},
                 ],
-                temperature=0.1,
+                temperature=settings.LLM_TEMPERATURE,
                 stream=False,
             ),
         )
