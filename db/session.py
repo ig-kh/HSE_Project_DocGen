@@ -5,10 +5,6 @@ DATABASE_URL = "postgresql+psycopg2://postgres:postgres@postgres:5432/docsgen_ll
 
 engine = create_engine(DATABASE_URL)
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

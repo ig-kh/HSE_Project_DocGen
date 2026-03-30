@@ -70,6 +70,7 @@
        currency = "UNKNOWN"
        vat = "unknown"
        добавь "cost" в missing_fields.
+    Никогда не вноси отедльные поля "vat", "currency", "amount" в "missing_fields".
 
 ПРАВИЛА ИЗВЛЕЧЕНИЯ:
 

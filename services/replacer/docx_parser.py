@@ -3,6 +3,7 @@ from docx.text.paragraph import Paragraph
 from docx.table import _Cell, Table
 from docx.document import Document as DocumentType
 
+
 def iter_runs_in_container(container):
     """
     Recursively yield runs inside a container that directly holds paragraphs/tables.
@@ -10,15 +11,16 @@ def iter_runs_in_container(container):
     """
     for child in container._element.iterchildren():
         tag = child.tag
-        if tag.endswith('p'):
+        if tag.endswith("p"):
             para = Paragraph(child, container.part)
             for run in para.runs:
                 yield run
-        elif tag.endswith('tbl'):
+        elif tag.endswith("tbl"):
             table = Table(child, container.part)
             for row in table.rows:
                 for cell in row.cells:
                     yield from iter_runs_in_container(cell)
+
 
 def iter_all_runs(doc):
     """Yield all runs from the main document body, headers, and footers."""
@@ -26,11 +28,11 @@ def iter_all_runs(doc):
     body = doc._element.body
     for child in body.iterchildren():
         tag = child.tag
-        if tag.endswith('p'):
+        if tag.endswith("p"):
             para = Paragraph(child, doc)
             for run in para.runs:
                 yield run
-        elif tag.endswith('tbl'):
+        elif tag.endswith("tbl"):
             table = Table(child, doc)
             for row in table.rows:
                 for cell in row.cells:
@@ -41,9 +43,11 @@ def iter_all_runs(doc):
         yield from iter_runs_in_container(section.header)
         yield from iter_runs_in_container(section.footer)
 
+
 def extract_run_texts(doc):
     """Return a list of all run texts in document order."""
     return [run.text for run in iter_all_runs(doc)]
+
 
 def replace_run_texts(doc, new_texts):
     """
