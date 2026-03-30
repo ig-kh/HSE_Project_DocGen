@@ -126,6 +126,47 @@ def fix_currency(currency: str, text: str):
         for pattern in ['рубль', 'рублей', 'рубля', 'копейка', 'копеек', 'копейки']:
             text = text.replace(pattern, currency_replace_dict[currency][pattern])
     return text
+
+def number_to_days(n: int) -> str:
+    ones = [
+        "", "одного", "двух", "трех", "четырех", "пяти",
+        "шести", "семи", "восьми", "девяти"
+    ]
+    
+    teens = [
+        "десяти", "одиннадцати", "двенадцати", "тринадцати",
+        "четырнадцати", "пятнадцати", "шестнадцати",
+        "семнадцати", "восемнадцати", "девятнадцати"
+    ]
+    
+    tens = [
+        "", "", "двадцати", "тридцати", "сорока",
+        "пятидесяти", "шестидесяти", "семидесяти",
+        "восьмидесяти", "девяноста"
+    ]
+
+    def number_to_words(num):
+        if num < 10:
+            return ones[num]
+        elif 10 <= num < 20:
+            return teens[num - 10]
+        else:
+            t = num // 10
+            o = num % 10
+            if o == 0:
+                return tens[t]
+            return f"{tens[t]} {ones[o]}"
+
+    # определяем правильную форму "день"
+    if n % 10 == 1 and n % 100 != 11:
+        day_word = "дня"
+    else:
+        day_word = "дней"
+
+    words = number_to_words(n)
+
+    return f"{n} ({words}) {day_word}"
+
     
 def format_extracted(extracted: ParsedContract) -> dict:
     cost_amount = float(extracted.cost.amount.replace(" ", "").replace(",", "."))
@@ -141,13 +182,15 @@ def format_extracted(extracted: ParsedContract) -> dict:
     full_cost_str = remove_invalid_thousand_phrase(f"{format_money(cost_amount)} ({mt.get_string_by_number(cost_amount)}){vat_cost_str}")
     full_cost_str = fix_currency(cost_currency, full_cost_str)
     
+    work_time_days = number_to_days(float(extracted.work_time_days))
+    
     formatted = {
         "data": extracted.date,
         "city": extracted.city if extracted.city is not None else "Nizhny Novgorod",
         "counterparty": extracted.counterparty,
         "ambassador": extracted.ambassador,
         "work": extracted.work,
-        "work_time_days": extracted.work_time_days,
+        "work_time_days": work_time_days,
         "work_time_basis_event": extracted.work_time_basis_event if extracted.work_time_basis_event is not None else "contract_date",
         "cost": full_cost_str
     }
