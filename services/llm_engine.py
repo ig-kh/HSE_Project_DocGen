@@ -5,7 +5,7 @@ from typing import List, Optional, cast
 from llama_cpp import Llama
 from llama_cpp.llama_types import CreateChatCompletionResponse
 
-MODEL_PATH = "models/Qwen3-8B-Q4_K_M.gguf"
+MODEL_PATH = "models/Qwen3-4B-Q4_K_M.gguf"
 
 # ----------------------------------------------------------------------
 # Helper functions
@@ -122,7 +122,7 @@ class LLMEngine:
         """
         self.llm = Llama(
             model_path=MODEL_PATH,  # fixed: use the passed parameter
-            n_ctx=3000,
+            n_ctx=4096,
             n_threads=8,
             n_gpu_layers=-1,
             n_batch=512,

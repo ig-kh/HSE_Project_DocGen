@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, model_v
 
 Currency = Literal["RUB", "USD", "EUR", "GBP", "UNKNOWN"]
 Vat = Literal["included", "excluded", "unknown"]
-MissingField = Literal["date", "counterparty", "work", "work_time_days", "cost"]
+MissingField = Literal["date", "counterparty", "work", "work_time_days", "cost", "city"]
 
 DATE_RE = re.compile(r"^\d{2}\.\d{2}\.\d{4}$")
 AMOUNT_RE = re.compile(r"^\d+(\.\d+)?$")
@@ -41,6 +41,7 @@ class ParsedContract(BaseModel):
     date: Optional[str] = Field(default=None, description="dd.mm.yy")
     city: Optional[str] = None
     counterparty: Optional[str] = None
+    ambassador: Optional[str] = None
     work: Optional[str] = None
 
     work_time_days: Optional[int] = Field(default=None, ge=1, le=36500)
@@ -104,6 +105,7 @@ def format_extracted(extracted: ParsedContract) -> dict:
         "data": extracted.date,
         "city": extracted.city if extracted.city is not None else "Nizhny Novgorod",
         "counterparty": extracted.counterparty,
+        "ambassador": extracted.ambassador,
         "work": extracted.work,
         "work_time_days": extracted.work_time_days,
         "work_time_basis_event": (

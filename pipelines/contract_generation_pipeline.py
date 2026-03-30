@@ -46,7 +46,7 @@ class ContractGenerationPipeline:
         logger.info("Generated prompt for replacer:")
         logger.info(self.office_clerk.replacement_prompt)
 
-        doc = Document("/app/pipelines/raw.docx")
+        doc = Document("/app/docs/raw.docx")
         original_texts = extract_run_texts(doc)
 
         new_texts = transform_big_chunks(
@@ -58,10 +58,10 @@ class ContractGenerationPipeline:
             new_run_text = next(text_iter)
             run.text = new_run_text
             if HIGHLIGHT_DIFFS and (old_run_text!=new_run_text):
-                run.font.highlight_color = WD_COLOR.YELLOW
+                run.font.highlight_color = WD_COLOR.TURQUOISE
 
 
-        output_path = "/app/pipelines/processed.docx"
+        output_path = "/app/docs/processed.docx"
         doc.save(output_path)
 
         return {"extracted": extracted, "contract_path": str(output_path)}
